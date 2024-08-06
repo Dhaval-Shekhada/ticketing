@@ -9,7 +9,7 @@ declare global {
 
 let mongo: any;
 beforeAll(async () => {
-  process.env.JWT_KEY = 'asdfasdf';
+  process.env.JWT_KEY = 'asdf';
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
   const mongo = await MongoMemoryServer.create();
@@ -33,7 +33,7 @@ afterAll(async () => {
   await mongoose.connection.close();
 });
 
-global.signin = async () => {
+global.signin =  async () => {
   const email = 'test@test.com';
   const password = 'password';
 
@@ -47,5 +47,5 @@ global.signin = async () => {
 
   const cookie = response.get('Set-Cookie');
 
-  return cookie;
+  return cookie!;
 };

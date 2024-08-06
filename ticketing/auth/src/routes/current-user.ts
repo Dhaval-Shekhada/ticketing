@@ -1,5 +1,5 @@
 import express from 'express';
-import { currentUser } from '@dtickt/common';
+import { currentUser } from '@rallycoding/common';
 
 const router = express.Router();
 

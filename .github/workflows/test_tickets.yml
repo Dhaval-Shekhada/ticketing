@@ -22,7 +22,7 @@ jobs:
 
       - name: Setup Environment and run tests
         env: 
-          JWT_KEY : ${{ secrets.JWT_KEY }}
+          JWT_KEY: ${{ secrets.JWT_KEY }}
           STRIPE_KEY: ${{ secrets.STRIPE_KEY }}
         run: |
           cd ticketing/tickets

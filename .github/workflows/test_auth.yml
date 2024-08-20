@@ -1,6 +1,10 @@
 name: test_auth
 
 on:
+  push:
+    branches:
+      - main  #
+
   pull_request:
     branches:
       - main  # Specify the branch or branches to run the workflow on
@@ -15,8 +19,7 @@ jobs:
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
-        with:
-          node-version: '14'  # Specify your Node.js version
+       
 
       - name: Setup Environment
         run: |

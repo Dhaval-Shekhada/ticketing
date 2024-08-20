@@ -7,4 +7,7 @@ jobs:
      runs-on: ubuntu-latest
      steps:
         - uses: actions/checkout@v2
-        - run: cd ticketing/auth && npm install && npm run test:ci
+        - run: 
+            echo "JWT_KEY"=${{ secrets.JWT_KEY}}" >> .env
+            echo "STRIPE_KEY=${{ secrets.STRIPE_KEY }}" >> .env
+            cd ticketing/auth && npm install && npm run test:ci

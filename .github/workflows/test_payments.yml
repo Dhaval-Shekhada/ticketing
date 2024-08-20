@@ -26,4 +26,5 @@ jobs:
         run: |
           cd ticketing/payments
           npm install
+          npm update
           npm run test:ci

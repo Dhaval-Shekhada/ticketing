@@ -1,13 +1,30 @@
 name: test_orders
 
-on: 
-  pull_request
+on:
+  pull_request:
+    branches:
+      - main  # Specify the branch or branches to run the workflow on
+
 jobs:
   build:
-     runs-on: ubuntu-latest
-     steps:
-        - uses: actions/checkout@v2
-        - run: 
-            echo "JWT_KEY"=${{ secrets.JWT_KEY}}" >> .env
-            echo "STRIPE_KEY=${{ secrets.STRIPE_KEY }}" >> .env
-            cd ticketing/orders && npm install && npm run test:ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'  # Specify your Node.js version
+
+      - name: Setup Environment
+        run: |
+          echo "JWT_KEY=${{ secrets.JWT_KEY }}" >> .env
+          echo "STRIPE_KEY=${{ secrets.STRIPE_KEY }}" >> .env
+          
+      - name: Install dependencies and run tests
+        run: |
+          cd ticketing/orders
+          npm install
+          npm run test:ci

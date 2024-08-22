@@ -73,7 +73,7 @@ jobs:
 
       - name: OPA Policy Check (Risk Management)
         run: |
-          opa eval --input ticketing/infra/k8s/payments-depl.yaml --data ./policies/deny-privileged-containers.rego --format json --query "data.kubernetes.admission.deny" > opa-report.json
+          opa eval --input ticketing/infra/k8s/payments-depl.yaml --data ./policies/deny-privileged-containers.rego --format json "data.kubernetes.admission.deny" > opa-report.json
 
       
 

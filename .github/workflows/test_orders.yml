@@ -12,7 +12,7 @@ jobs:
     env:
       # Define secrets to be used across the entire job
       JWT_KEY: ${{ secrets.JWT_KEY }}
-      STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+      STRIPE_API_KEY: ${{ secrets.STRIPE_KEY }}
       DOCKER_USER: ${{ secrets.DOCKER_USER }}
       DOCKER_KEY: ${{ secrets.DOCKER_KEY }}
       
@@ -73,7 +73,7 @@ jobs:
 
       - name: OPA Policy Check (Risk Management)
         run: |
-          opa eval --input infra/k8s/orders-depl.yaml --data ./policies/deny-privileged-containers.rego --format json --query "data.kubernetes.admission.deny" > opa-report.json
+          opa eval --input ticketing/infra/k8s/orders-depl.yaml --data ./policies/deny-privileged-containers.rego --format json --query "data.kubernetes.admission.deny" > opa-report.json
 
       # 10. Set up Helm (for installing Prometheus and Grafana) - Monitoring
       - name: Set up Helm
@@ -105,7 +105,7 @@ jobs:
 
       - name: Run Terrascan for Kubernetes/Cloud Compliance (Risk Mitigation)
         run: |
-          terrascan scan -i k8s -f infra/k8s/orders-depl.yaml -o json > terrascan-report.json
+          terrascan scan -i k8s -f ticketing/infra/k8s/orders-depl.yaml -o json > terrascan-report.json
 
       # 13. Export compliance and security reports for audit
       - name: Upload compliance and security reports (Risk Reporting)

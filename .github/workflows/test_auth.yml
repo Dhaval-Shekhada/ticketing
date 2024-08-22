@@ -72,13 +72,9 @@ jobs:
 
       - name: OPA Policy Check (Risk Management)
         run: |
-          opa eval --input k8s-deployment.yaml --data ./policies/deny-privileged-containers.rego "data.kubernetes.admission.deny"
-        continue-on-error: true
-      
-      - name: OPA Report export
-        run: |
-          opa eval --input k8s-deployment.yaml --data ./policies/deny-privileged-containers.rego --format json > opa-report.json
+          opa eval --input k8s-deployment.yaml --data ./policies/deny-privileged-containers.rego --format json --query "data.kubernetes.admission.deny" > opa-report.json
 
+     
       # 10. Set up Helm (for installing Prometheus and Grafana) - Monitoring
       - name: Set up Helm
         run: |
@@ -114,19 +110,19 @@ jobs:
       # 13. Export compliance and security reports for audit
       - name: Upload compliance and security reports (Risk Reporting)
         run: |
-          mkdir reports
-          mv npm-audit-report.json reports/
-          mv trivy-report.json reports/
-          mv opa-report.json reports/
-          mv dast-report.html reports/
-          mv terrascan-report.json reports/
+          mkdir reports-auth
+          mv npm-audit-report.json reports-auth/
+          mv trivy-report.json reports-auth/
+          mv opa-report.json reports-auth/
+          mv dast-report.html reports-auth/
+          mv terrascan-report.json reports-auth/
 
       # 14. Risk Reporting: Summary and Compliance Check
       - name: Risk Report Summary
         run: |
           echo "Summary of risks identified and mitigated"
-          cat reports/npm-audit-report.json
-          cat reports/trivy-report.json
-          cat reports/opa-report.json
-          cat reports/dast-report.html
-          cat reports/terrascan-report.json
+          cat reports-auth/npm-audit-report.json
+          cat reports-auth/trivy-report.json
+          cat reports-auth/opa-report.json
+          cat reports-auth/dast-report.html
+          cat reports-auth/terrascan-report.json

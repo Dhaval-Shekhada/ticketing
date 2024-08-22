@@ -1,30 +1,130 @@
-name: test_orders
+name: DevSecOps CI/CD with Risk Management, Compliance & Monitoring for orders
 
 on:
-  push:
-    branches:
-      - main  # on push 
   pull_request:
     branches:
-      - main  # Specify the branch or branches to run the workflow on
+      - main
 
 jobs:
-  build:
+  compliance_checks:
     runs-on: ubuntu-latest
 
+    env:
+      # Define secrets to be used across the entire job
+      JWT_KEY: ${{ secrets.JWT_KEY }}
+      STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
+      DOCKER_KEY: ${{ secrets.DOCKER_KEY }}
+      
+
     steps:
+      # 1. Checkout source code
       - name: Checkout code
         uses: actions/checkout@v2
 
+      # 2. Set up Node.js and install Node.js dependencies
       - name: Set up Node.js
         uses: actions/setup-node@v2
-       
+        with:
+          node-version: '14'
+          
 
-      - name: Setup Environment and run tests
-        env: 
-          JWT_KEY: ${{ secrets.JWT_KEY }}
-          STRIPE_KEY: ${{ secrets.STRIPE_KEY }}   
+      # 3. Install packages for orders service and run tests
+      - name: Install packages (orders Service)
         run: |
           cd ticketing/orders
           npm install
+
+      - name: Run tests (orders Service)
+        run: |
+          cd ticketing/orders
           npm run test:ci
+
+      # 4. Run SAST (Static Application Security Testing)
+      - name: Run ESLint security linting (Risk Identification)
+        run: |
+          npx eslint . --plugin security --ext .js,.ts
+        continue-on-error: true
+
+      # 5. Dependency security (npm audit) - Risk Identification
+      - name: Run npm audit (Risk Assessment)
+        run: npm audit --json > npm-audit-report.json
+
+      # 6. Set up Docker (no explicit install needed, but ensure Docker is running)
+      - name: Log in to Docker Hub
+        run: |
+          echo $DOCKER_KEY | docker login -u $DOCKER_USER --password-stdin
+
+      # 7. Container scanning with Trivy (Risk Identification)
+      - name: Run Trivy on Docker image
+        run: |
+          docker pull dhavalshekhada/orders
+          trivy image dhavalshekhada/orders --format json --output trivy-report.json
+
+      # 8. Set up OPA (Open Policy Agent) for Policy as Code (OPA) - Risk Mitigation
+      - name: Install OPA
+        run: |
+          curl -L https://openpolicyagent.org/downloads/v0.37.1/opa_linux_amd64 -o opa
+          chmod +x opa
+          sudo mv opa /usr/local/bin/opa
+
+      - name: OPA Policy Check (Risk Management)
+        run: |
+          opa eval --input k8s-deployment.yaml --data ./policies/deny-privileged-containers.rego "data.kubernetes.admission.deny"
+        continue-on-error: true
+      
+      - name: OPA Report export
+        run: |
+          opa eval --input k8s-deployment.yaml --data ./policies/deny-privileged-containers.rego --format json > opa-report.json
+
+      # 9. Set up Helm (for installing Prometheus and Grafana) - Monitoring
+      - name: Set up Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Install Prometheus
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm install prometheus prometheus-community/prometheus
+
+      - name: Install Grafana
+        run: |
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm install grafana grafana/grafana
+
+      # 10. Run DAST (OWASP ZAP) for dynamic testing (Risk Identification)
+      - name: Run OWASP ZAP DAST scan (Risk Identification)
+        run: |
+          docker run -v $(pwd):/zap/wrk/:rw -t owasp/zap2docker-stable zap-baseline.py -t http://localhost:8080
+          mv /zap/wrk/report.html dast-report.html
+
+      # 11. Compliance as Code using Terrascan (Risk Mitigation)
+      - name: Install Terrascan
+        run: |
+          curl -L https://github.com/accurics/terrascan/releases/download/v1.11.1/terrascan_1.11.1_linux_amd64.tar.gz -o terrascan.tar.gz
+          tar -xzf terrascan.tar.gz
+          sudo mv terrascan /usr/local/bin/terrascan
+
+      - name: Run Terrascan for Kubernetes/Cloud Compliance (Risk Mitigation)
+        run: |
+          terrascan scan -i k8s -f k8s-deployment.yaml -o json > terrascan-report.json
+
+      # 12. Export compliance and security reports for audit
+      - name: Upload compliance and security reports (Risk Reporting)
+        run: |
+          mkdir reports
+          mv npm-audit-report.json reports/
+          mv trivy-report.json reports/
+          mv opa-report.json reports/
+          mv dast-report.html reports/
+          mv terrascan-report.json reports/
+
+      # 13. Risk Reporting: Summary and Compliance Check
+      - name: Risk Report Summary
+        run: |
+          echo "Summary of risks identified and mitigated"
+          cat reports/npm-audit-report.json
+          cat reports/trivy-report.json
+          cat reports/opa-report.json
+          cat reports/dast-report.html
+          cat reports/terrascan-report.json

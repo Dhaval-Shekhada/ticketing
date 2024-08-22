@@ -49,13 +49,22 @@ jobs:
         run: |
           echo $DOCKER_KEY | docker login -u $DOCKER_USER --password-stdin
 
-      # 7. Container scanning with Trivy (Risk Identification)
+      # 7. Install Trivy for container security scanning
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update && sudo apt-get install -y trivy
+
+      # 8. Container scanning with Trivy (Risk Identification)
       - name: Run Trivy on Docker image
         run: |
           docker pull dhavalshekhada/payments
           trivy image dhavalshekhada/payments --format json --output trivy-report.json
 
-      # 8. Set up OPA (Open Policy Agent) for Policy as Code (OPA) - Risk Mitigation
+      # 9. Set up OPA (Open Policy Agent) for Policy as Code (OPA) - Risk Mitigation
       - name: Install OPA
         run: |
           curl -L https://openpolicyagent.org/downloads/v0.37.1/opa_linux_amd64 -o opa
@@ -71,7 +80,7 @@ jobs:
         run: |
           opa eval --input k8s-deployment.yaml --data ./policies/deny-privileged-containers.rego --format json > opa-report.json
 
-      # 9. Set up Helm (for installing Prometheus and Grafana) - Monitoring
+      # 10. Set up Helm (for installing Prometheus and Grafana) - Monitoring
       - name: Set up Helm
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
@@ -86,13 +95,13 @@ jobs:
           helm repo add grafana https://grafana.github.io/helm-charts
           helm install grafana grafana/grafana
 
-      # 10. Run DAST (OWASP ZAP) for dynamic testing (Risk Identification)
+      # 11. Run DAST (OWASP ZAP) for dynamic testing (Risk Identification)
       - name: Run OWASP ZAP DAST scan (Risk Identification)
         run: |
           docker run -v $(pwd):/zap/wrk/:rw -t owasp/zap2docker-stable zap-baseline.py -t http://localhost:8080
           mv /zap/wrk/report.html dast-report.html
 
-      # 11. Compliance as Code using Terrascan (Risk Mitigation)
+      # 12. Compliance as Code using Terrascan (Risk Mitigation)
       - name: Install Terrascan
         run: |
           curl -L https://github.com/accurics/terrascan/releases/download/v1.11.1/terrascan_1.11.1_linux_amd64.tar.gz -o terrascan.tar.gz
@@ -103,7 +112,7 @@ jobs:
         run: |
           terrascan scan -i k8s -f k8s-deployment.yaml -o json > terrascan-report.json
 
-      # 12. Export compliance and security reports for audit
+      # 13. Export compliance and security reports for audit
       - name: Upload compliance and security reports (Risk Reporting)
         run: |
           mkdir reports
@@ -113,7 +122,7 @@ jobs:
           mv dast-report.html reports/
           mv terrascan-report.json reports/
 
-      # 13. Risk Reporting: Summary and Compliance Check
+      # 14. Risk Reporting: Summary and Compliance Check
       - name: Risk Report Summary
         run: |
           echo "Summary of risks identified and mitigated"

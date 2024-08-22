@@ -8,7 +8,6 @@ on:
 jobs:
   compliance_checks:
     runs-on: ubuntu-latest
-
     env:
       # Define secrets to be used across the entire job
       JWT_KEY: ${{ secrets.JWT_KEY }}
@@ -25,19 +24,13 @@ jobs:
       # 2. Set up Node.js and install Node.js dependencies
       - name: Set up Node.js
         uses: actions/setup-node@v2
-        with:
-          node-version: '14'
           
 
       # 3. Install packages for auth service and run tests
-      - name: Install packages (auth Service)
+      - name: Install packages and run test (auth Service)
         run: |
           cd ticketing/auth
           npm install
-
-      - name: Run tests (auth Service)
-        run: |
-          cd ticketing/auth
           npm run test:ci
 
       # 4. Run SAST (Static Application Security Testing)

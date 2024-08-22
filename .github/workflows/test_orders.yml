@@ -25,19 +25,13 @@ jobs:
       # 2. Set up Node.js and install Node.js dependencies
       - name: Set up Node.js
         uses: actions/setup-node@v2
-        with:
-          node-version: '14'
           
 
       # 3. Install packages for orders service and run tests
-      - name: Install packages (orders Service)
+      - name: Install packages and run test (orders Service)
         run: |
           cd ticketing/orders
           npm install
-
-      - name: Run tests (orders Service)
-        run: |
-          cd ticketing/orders
           npm run test:ci
 
       # 4. Run SAST (Static Application Security Testing)

@@ -1,0 +1,7 @@
+scan:
+  iac:
+    - k8s: # Scan Kubernetes manifests
+        - path: "./k8s/"
+  output:
+    - format: json
+    - file: terrascan-report.json

@@ -72,7 +72,7 @@ jobs:
 
       - name: OPA Policy Check (Risk Management)
         run: |
-          opa eval --input k8s-deployment.yaml --data ./policies/deny-privileged-containers.rego --format json --query "data.kubernetes.admission.deny" > opa-report.json
+          opa eval --input infra/k8s/orders-depl.yaml --data ./policies/deny-privileged-containers.rego --format json --query "data.kubernetes.admission.deny" > opa-report.json
 
      
       # 10. Set up Helm (for installing Prometheus and Grafana) - Monitoring
@@ -105,7 +105,7 @@ jobs:
 
       - name: Run Terrascan for Kubernetes/Cloud Compliance (Risk Mitigation)
         run: |
-          terrascan scan -i k8s -f k8s-deployment.yaml -o json > terrascan-report.json
+          terrascan scan -i k8s -f infra/k8s/auth-depl.yaml -o json > terrascan-report.json
 
       # 13. Export compliance and security reports for audit
       - name: Upload compliance and security reports (Risk Reporting)

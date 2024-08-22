@@ -73,7 +73,7 @@ jobs:
 
       - name: OPA Policy Check (Risk Management)
         run: |
-          opa eval --input k8s-deployment.yaml --data ./policies/deny-privileged-containers.rego --format json --query "data.kubernetes.admission.deny" > opa-report.json
+          opa eval --input infra/k8s/payments-depl.yaml --data ./policies/deny-privileged-containers.rego --format json --query "data.kubernetes.admission.deny" > opa-report.json
 
       
 
@@ -104,10 +104,10 @@ jobs:
           curl -L https://github.com/accurics/terrascan/releases/download/v1.11.1/terrascan_1.11.1_linux_amd64.tar.gz -o terrascan.tar.gz
           tar -xzf terrascan.tar.gz
           sudo mv terrascan /usr/local/bin/terrascan
-
+          
       - name: Run Terrascan for Kubernetes/Cloud Compliance (Risk Mitigation)
         run: |
-          terrascan scan -i k8s -f k8s-deployment.yaml -o json > terrascan-report.json
+          terrascan scan -i k8s -f infra/k8s/payments-depl.yaml -o json > terrascan-report.json
 
       # 13. Export compliance and security reports for audit
       - name: Upload compliance and security reports (Risk Reporting)
